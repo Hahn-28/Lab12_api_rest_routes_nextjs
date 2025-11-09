@@ -3,7 +3,7 @@
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 
 interface Book {
   id: number
@@ -32,7 +32,7 @@ interface PaginationInfo {
   hasPrev: boolean
 }
 
-export default function BooksPage() {
+function BooksContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   
@@ -67,8 +67,11 @@ export default function BooksPage() {
   }, [])
 
   useEffect(() => {
-    const page = searchParams.get('page') || '1'
-    fetchBooks(parseInt(page))
+    if (searchParams) {
+      const page = searchParams.get('page') || '1'
+      fetchBooks(parseInt(page))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, selectedGenre, selectedAuthor, sortBy, order, searchParams])
 
   const fetchBooks = async (page: number) => {
@@ -408,5 +411,19 @@ export default function BooksPage() {
         </>
       )}
     </div>
+  )
+}
+
+export default function BooksPage() {
+  return (
+    <Suspense fallback={
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-center items-center min-h-[400px]">
+          <LoadingSpinner />
+        </div>
+      </div>
+    }>
+      <BooksContent />
+    </Suspense>
   )
 }
